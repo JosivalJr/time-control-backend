@@ -2,58 +2,65 @@ import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { ValidatorMiddleware } from '../../middleware';
 import * as yup from 'yup';
+import { uuidRegExp } from '../../utils';
+import { ITimeControl } from '../../database/models';
+import { TimeControlProvider } from '../../database/providers/timecontrol';
+import { UUID } from 'crypto';
 
-type timeControlType = 'in' | 'out';
-
-interface TimeControlProtocol {
-  control_type?: timeControlType;
-  control_time?: Date;
-  updated_at?: Date;
-}
-interface ParamsPropsProtocol {
+interface IParamProps {
   id: string;
 }
 
-const BodyValidation: yup.ObjectSchema<TimeControlProtocol> = yup
-  .object()
-  .shape({
-    control_type: yup.string().oneOf(['in', 'out']).optional(),
-    control_time: yup.date().optional(),
-    updated_at: yup.date().optional(),
-  });
+interface IBodyProps
+  extends Omit<
+    ITimeControl,
+    'id' | 'employee_id' | 'created_at' | 'updated_at' | 'control_type'
+  > {
+  control_type: string;
+}
 
-const ParamsValidation: yup.ObjectSchema<ParamsPropsProtocol> = yup
+const ParamsValidation: yup.ObjectSchema<IParamProps> = yup.object().shape({
+  id: yup.string().required().matches(uuidRegExp),
+});
+
+const BodyValidation: yup.ObjectSchema<Partial<IBodyProps>> = yup
   .object()
   .shape({
-    id: yup.string().required(),
+    control_type: yup.string().optional().oneOf(['in', 'out']),
+    control_time: yup.date().optional(),
   });
 
 export const updateByIdValidation = ValidatorMiddleware((getSchema) => ({
-  body: getSchema<TimeControlProtocol>(BodyValidation),
-  params: getSchema<ParamsPropsProtocol>(ParamsValidation),
+  body: getSchema<Partial<IBodyProps>>(BodyValidation),
+  params: getSchema<IParamProps>(ParamsValidation),
 }));
 
 export async function updateById(
-  req: Request<{ id: string }, {}, TimeControlProtocol>,
+  req: Request<{ id: string }, {}, IBodyProps>,
   res: Response,
 ) {
-  const { body, params } = req;
-  const { id } = params;
+  const { body } = req;
+  const { id } = req.params;
 
-  if (Object.keys(body).length <= 0) {
+  if (Object.keys(body).length === 0) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       errors: {
-        default: 'Error reading values in body content.',
+        default: `Error to update time control '${id}'. No data was sent in the request body.`,
         body,
       },
     });
   }
 
-  if (Number(id) === 9999)
-    return res.status(StatusCodes.NOT_FOUND).json({
+  const result = await TimeControlProvider.updateById(
+    id as UUID,
+    body as ITimeControl,
+  );
+  if (result instanceof Error) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       errors: {
-        default: `Invalid identifier, could not find a time control with the id '${id}'.`,
+        default: result.message,
       },
     });
-  return res.status(StatusCodes.ACCEPTED).json(body);
+  }
+  return res.status(StatusCodes.ACCEPTED).send(result);
 }

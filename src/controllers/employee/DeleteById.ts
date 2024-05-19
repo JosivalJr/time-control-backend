@@ -2,30 +2,31 @@ import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { ValidatorMiddleware } from '../../middleware';
 import * as yup from 'yup';
+import { uuidRegExp } from '../../utils';
+import { EmployeeProvider } from '../../database/providers/employee';
+import { UUID } from 'crypto';
 
-interface ParamsPropsProtocol {
+interface IParamProps {
   id: string;
 }
 
-const ParamsValidation: yup.ObjectSchema<ParamsPropsProtocol> = yup
-  .object()
-  .shape({
-    id: yup.string().required(),
-  });
+const ParamsValidation: yup.ObjectSchema<IParamProps> = yup.object().shape({
+  id: yup.string().required().matches(uuidRegExp),
+});
 
 export const deleteByIdValidation = ValidatorMiddleware((getSchema) => ({
-  params: getSchema<ParamsPropsProtocol>(ParamsValidation),
+  params: getSchema<IParamProps>(ParamsValidation),
 }));
 
 export async function deleteById(req: Request<{ id: string }>, res: Response) {
   const { id } = req.params;
-
-  if (Number(id) === 9999)
-    return res.status(StatusCodes.NOT_FOUND).json({
+  const result = await EmployeeProvider.deleteById(id as UUID);
+  if (result instanceof Error) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       errors: {
-        default: `Invalid identifier, could not find a employee with the id '${id}'.`,
+        default: result.message,
       },
     });
-
+  }
   return res.status(StatusCodes.NO_CONTENT).send();
 }

@@ -1,57 +1,64 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { ValidatorMiddleware } from '../../middleware';
+import { IEmployee } from '../../database/models';
 import * as yup from 'yup';
+import { uuidRegExp } from '../../utils';
+import { EmployeeProvider } from '../../database/providers/employee';
+import { UUID } from 'crypto';
 
-interface EmployeeProtocol {
-  first_name?: string;
-  last_name?: string;
-  email?: string;
-  password?: string;
-}
-
-interface ParamsPropsProtocol {
+interface IParamProps {
   id: string;
 }
 
-const BodyValidation: yup.ObjectSchema<EmployeeProtocol> = yup.object().shape({
-  first_name: yup.string().optional().min(3),
-  last_name: yup.string().optional().min(3),
-  email: yup.string().optional().email(),
-  password: yup.string().optional().min(3),
-});
+interface IBodyProps
+  extends Omit<IEmployee, 'id' | 'created_at' | 'updated_at'> {}
 
-const ParamsValidation: yup.ObjectSchema<ParamsPropsProtocol> = yup
+const BodyValidation: yup.ObjectSchema<Partial<IBodyProps>> = yup
   .object()
   .shape({
-    id: yup.string().required(),
+    first_name: yup.string().optional().min(3),
+    last_name: yup.string().optional().min(3),
+    email: yup.string().optional().email(),
+    password: yup.string().optional().min(3),
   });
 
+const ParamsValidation: yup.ObjectSchema<IParamProps> = yup.object().shape({
+  id: yup.string().required().matches(uuidRegExp),
+});
+
 export const updateByIdValidation = ValidatorMiddleware((getSchema) => ({
-  body: getSchema<EmployeeProtocol>(BodyValidation),
-  params: getSchema<ParamsPropsProtocol>(ParamsValidation),
+  body: getSchema<Partial<IBodyProps>>(BodyValidation),
+  params: getSchema<IParamProps>(ParamsValidation),
 }));
 
 export async function updateById(
-  req: Request<{ id: string }, {}, EmployeeProtocol>,
+  req: Request<{ id: string }, {}, IBodyProps>,
   res: Response,
 ) {
-  const { body, params } = req;
-  const { id } = params;
+  const { body } = req;
+  const { id } = req.params;
 
-  if (Object.keys(body).length <= 0)
+  console.log({ body });
+  if (Object.keys(body).length === 0) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       errors: {
-        default: 'Error reading values in body content.',
+        default: `Error to update employee '${id}'. No data was sent in the request body.`,
         body,
       },
     });
+  }
+  const result = await EmployeeProvider.updateById(
+    id as UUID,
+    body as IEmployee,
+  );
 
-  if (Number(id) === 9999)
-    return res.status(StatusCodes.NOT_FOUND).json({
+  if (result instanceof Error) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       errors: {
-        default: `Invalid identifier, could not find a employee with the id '${id}'.`,
+        default: result.message,
       },
     });
-  return res.status(StatusCodes.ACCEPTED).json(body);
+  }
+  return res.status(StatusCodes.ACCEPTED).send(result);
 }

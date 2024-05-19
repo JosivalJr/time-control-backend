@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  database:
+    container_name: database
+    build: .
+    command: npm start
+    restart: always
+    networks:
+      - database_nw
+    ports:
+      - "3001:3001"
+    environment:
+      # App
+      - APP_PORT=3001
+      - WHITE_LIST=["http://localhost"]
+      # Database
+      - DATABASE=postgres
+      - DATABASE_HOST=postgresql
+      - DATABASE_USER=admin
+      - DATABASE_PASSWORD=admin2024
+      # Authorization
+      - AUTH_TOKEN=8Ebdew92OnBMkEqdmHpo3Xsr0JSQ878i
+    depends_on:
+      - postgresql
+
+  postgresql:
+    container_name: postgresql
+    image: postgres:12
+    restart: always
+    networks:
+      - database_nw
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin2024
+    volumes:
+      - postgresql:/var/lib/postgresql/data
+
+networks:
+  database_nw:
+    driver: bridge
+
+volumes:
+  postgresql:
+    driver: local
