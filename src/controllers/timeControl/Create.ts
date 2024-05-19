@@ -16,7 +16,7 @@ const BodyValidation: yup.ObjectSchema<TimeControlProtocol> = yup
   .object()
   .shape({
     id: yup.string().required().min(3),
-    control_type: yup.mixed<timeControlType>().required(),
+    control_type: yup.string().oneOf(['in', 'out']).required(),
     control_time: yup.date().required(),
     created_at: yup.date().required(),
     updated_at: yup.date().required(),

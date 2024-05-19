@@ -18,7 +18,13 @@ export const deleteByIdValidation = ValidatorMiddleware((getSchema) => ({
 }));
 
 export async function deleteById(req: Request<{ id: string }>, res: Response) {
-  const { params } = req;
-  console.log({ params });
+  const { id } = req.params;
+
+  if (Number(id) === 9999)
+    return res.status(StatusCodes.NOT_FOUND).json({
+      errors: {
+        default: `Invalid identifier, could not find a time control with the id '${id}'.`,
+      },
+    });
   return res.status(StatusCodes.NO_CONTENT).send();
 }

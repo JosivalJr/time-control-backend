@@ -27,5 +27,7 @@ export async function getAll(
 ) {
   const { query } = req;
   console.log({ query });
-  return res.status(StatusCodes.OK).json(query);
+  res.setHeader('access-control-expose-headers', 'tc-total-count');
+  res.setHeader('tc-total-count', 2);
+  return res.status(StatusCodes.OK).json([{}, {}]);
 }

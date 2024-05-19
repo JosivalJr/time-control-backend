@@ -6,10 +6,9 @@ import * as yup from 'yup';
 type timeControlType = 'in' | 'out';
 
 interface TimeControlProtocol {
-  id: string;
   control_type?: timeControlType;
   control_time?: Date;
-  updated_at: Date;
+  updated_at?: Date;
 }
 interface ParamsPropsProtocol {
   id: string;
@@ -18,10 +17,9 @@ interface ParamsPropsProtocol {
 const BodyValidation: yup.ObjectSchema<TimeControlProtocol> = yup
   .object()
   .shape({
-    id: yup.string().required().min(3),
-    control_type: yup.mixed<timeControlType>().required(),
-    control_time: yup.date().required(),
-    updated_at: yup.date().required(),
+    control_type: yup.string().oneOf(['in', 'out']).optional(),
+    control_time: yup.date().optional(),
+    updated_at: yup.date().optional(),
   });
 
 const ParamsValidation: yup.ObjectSchema<ParamsPropsProtocol> = yup
@@ -39,7 +37,23 @@ export async function updateById(
   req: Request<{ id: string }, {}, TimeControlProtocol>,
   res: Response,
 ) {
-  const { body, query } = req;
-  console.log({ query, body });
-  return res.status(StatusCodes.ACCEPTED).json({ body, query });
+  const { body, params } = req;
+  const { id } = params;
+
+  if (Object.keys(body).length <= 0) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      errors: {
+        default: 'Error reading values in body content.',
+        body,
+      },
+    });
+  }
+
+  if (Number(id) === 9999)
+    return res.status(StatusCodes.NOT_FOUND).json({
+      errors: {
+        default: `Invalid identifier, could not find a time control with the id '${id}'.`,
+      },
+    });
+  return res.status(StatusCodes.ACCEPTED).json(body);
 }

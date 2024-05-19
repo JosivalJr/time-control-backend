@@ -36,7 +36,22 @@ export async function updateById(
   req: Request<{ id: string }, {}, EmployeeProtocol>,
   res: Response,
 ) {
-  const { body, query } = req;
-  console.log({ query, body });
-  return res.status(StatusCodes.ACCEPTED).json({ body, query });
+  const { body, params } = req;
+  const { id } = params;
+
+  if (Object.keys(body).length <= 0)
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      errors: {
+        default: 'Error reading values in body content.',
+        body,
+      },
+    });
+
+  if (Number(id) === 9999)
+    return res.status(StatusCodes.NOT_FOUND).json({
+      errors: {
+        default: `Invalid identifier, could not find a employee with the id '${id}'.`,
+      },
+    });
+  return res.status(StatusCodes.ACCEPTED).json(body);
 }

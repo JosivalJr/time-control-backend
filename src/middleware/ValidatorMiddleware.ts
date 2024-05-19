@@ -37,5 +37,5 @@ export const ValidatorMiddleware: TValidation =
     }
 
     if (Object.entries(errorsResult).length === 0) return next();
-    return res.status(StatusCodes.BAD_REQUEST).json(errorsResult);
+    return res.status(StatusCodes.BAD_REQUEST).json({ errors: errorsResult });
   };
