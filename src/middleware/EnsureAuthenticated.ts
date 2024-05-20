@@ -24,6 +24,7 @@ export const ensureAuthenticated: RequestHandler = async (req, res, next) => {
   }
 
   const jwtData = JWTService.verify(token);
+
   if (jwtData === 'JWT_SECRET_NOT_FOUND') {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       errors: {
@@ -37,7 +38,6 @@ export const ensureAuthenticated: RequestHandler = async (req, res, next) => {
       },
     });
   }
-
   req.headers.employeeId = jwtData.uid.toString();
   return next();
 };

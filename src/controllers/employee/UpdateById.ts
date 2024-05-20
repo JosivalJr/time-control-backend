@@ -17,10 +17,10 @@ interface IBodyProps
 const BodyValidation: yup.ObjectSchema<Partial<IBodyProps>> = yup
   .object()
   .shape({
-    first_name: yup.string().optional().min(3),
-    last_name: yup.string().optional().min(3),
-    email: yup.string().optional().email(),
-    password: yup.string().optional().min(3),
+    first_name: yup.string().optional().min(3).max(30),
+    last_name: yup.string().optional().min(3).max(30),
+    email: yup.string().optional().email().min(5).max(30),
+    password: yup.string().optional().min(6).max(255),
   });
 
 const ParamsValidation: yup.ObjectSchema<IParamProps> = yup.object().shape({
@@ -39,7 +39,6 @@ export async function updateById(
   const { body } = req;
   const { id } = req.params;
 
-  console.log({ body });
   if (Object.keys(body).length === 0) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       errors: {

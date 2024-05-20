@@ -29,12 +29,9 @@ export const createValidation = ValidatorMiddleware((getSchema) => ({
 export async function create(req: Request<{}, {}, IBodyProps>, res: Response) {
   const { body } = req;
   const { employee_id, control_type } = body;
-  const dateNow = new Date();
   const id = crypto.randomUUID();
   const createBody = {
     ...body,
-    created_at: dateNow,
-    updated_at: dateNow,
     control_type: control_type as timeControlType,
     employee_id: employee_id as UUID,
     id: id as UUID,

@@ -1,5 +1,6 @@
 import App from './App';
 import { Knex } from './database/knex';
+import 'dotenv/config';
 
 const port = process.env.APP_PORT || 3000;
 const environment = process.env.NODE_ENV || 'dev';
@@ -9,15 +10,8 @@ const startServer = () => {
 };
 
 if (environment === 'dev') {
-  Knex.migrate
-    .latest()
-    .then(() => {
-      Knex.seed
-        .run()
-        .then(() => startServer())
-        .catch((error) => console.error(error));
-    })
-    .catch((error) => console.error(error));
+  Knex.migrate.latest();
+  startServer();
 } else {
   startServer();
 }

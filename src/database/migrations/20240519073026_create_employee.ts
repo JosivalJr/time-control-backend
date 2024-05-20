@@ -6,13 +6,28 @@ export async function up(knex: Knex) {
     .createTable(ETableNames.employee, (table) => {
       table.uuid('id').primary().index().notNullable();
       table
-        .string('first_name', 30)
-        .checkLength('<=', 30)
+        .string('first_name')
         .index()
-        .notNullable();
-      table.string('last_name', 30).checkLength('<=', 40).index().notNullable();
-      table.string('email', 40).checkLength('<=', 40).index().notNullable();
-      table.string('password').index().notNullable();
+        .notNullable()
+        .checkLength('<=', 30)
+        .checkLength('>=', 3);
+
+      table
+        .string('last_name')
+        .index()
+        .notNullable()
+        .checkLength('<=', 30)
+        .checkLength('>=', 3);
+
+      table
+        .string('email')
+        .index()
+        .notNullable()
+        .checkLength('<=', 30)
+        .checkLength('>=', 5)
+        .unique();
+
+      table.string('password').index().notNullable().checkLength('>=', 6);
       table.date('created_at').index().notNullable().defaultTo(new Date());
       table.date('updated_at').index().notNullable().defaultTo(new Date());
 

@@ -10,10 +10,10 @@ interface IBodyProps
   extends Omit<IEmployee, 'id' | 'created_at' | 'updated_at'> {}
 
 const BodyValidation: yup.ObjectSchema<IBodyProps> = yup.object().shape({
-  first_name: yup.string().required().min(3),
-  last_name: yup.string().required().min(3),
-  email: yup.string().required().email(),
-  password: yup.string().required().min(3),
+  first_name: yup.string().required().min(3).max(30),
+  last_name: yup.string().required().min(3).max(30),
+  email: yup.string().required().email().min(5).max(30),
+  password: yup.string().required().min(6).max(255),
 });
 
 export const createValidation = ValidatorMiddleware((getSchema) => ({
@@ -22,9 +22,8 @@ export const createValidation = ValidatorMiddleware((getSchema) => ({
 
 export async function create(req: Request<{}, {}, IBodyProps>, res: Response) {
   const { body } = req;
-  const dateNow = new Date();
   const id = crypto.randomUUID();
-  const createBody = { ...body, created_at: dateNow, updated_at: dateNow, id };
+  const createBody = { ...body, id };
 
   const result = await EmployeeProvider.create(createBody);
   if (result instanceof Error) {
@@ -34,5 +33,6 @@ export async function create(req: Request<{}, {}, IBodyProps>, res: Response) {
       },
     });
   }
+
   return res.status(StatusCodes.CREATED).json(result);
 }

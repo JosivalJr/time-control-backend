@@ -21,10 +21,13 @@ const verify = (
 
   try {
     const decoded = jwt.verify(token, jwtSecret);
-    if (typeof decoded === 'string') return 'INVALID_TOKEN';
+    if (typeof decoded === 'string') {
+      return 'INVALID_TOKEN';
+    }
 
     return decoded as IJwtData;
   } catch (error) {
+    console.error(error);
     return 'INVALID_TOKEN';
   }
 };

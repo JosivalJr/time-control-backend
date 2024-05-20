@@ -19,7 +19,7 @@ interface IBodyProps
 
 const BodyValidation: yup.ObjectSchema<IBodyProps> = yup.object().shape({
   id: yup.string().required().matches(uuidRegExp),
-  password: yup.string().required().min(6).max(24),
+  password: yup.string().required().min(6).max(255),
 });
 
 export const signInValidation = ValidatorMiddleware((getSchema) => ({
@@ -52,8 +52,8 @@ export async function signIn(req: Request<{}, {}, IBodyProps>, res: Response) {
       },
     });
   }
-
   const accessToken = JWTService.sign({ uid: employeeInfos.id });
+
   if (accessToken === 'JWT_SECRET_NOT_FOUND') {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       errors: {

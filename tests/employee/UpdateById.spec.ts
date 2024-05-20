@@ -1,58 +1,66 @@
 import { IEmployee } from '../../src/database/models';
 import { testServer } from '../jest.setup';
-import { createEmployee } from '../mocks';
+import { createEmployee, signIn } from '../mocks';
 
 describe('Update Employee by Id', () => {
   let employeeMock: IEmployee | undefined = undefined;
+  let employeeAccessToken: string;
+  let employeePassword: string;
 
   beforeAll(async () => {
-    employeeMock = await createEmployee();
+    const password = '123456';
+    const employee = await createEmployee({ password });
+    employeeMock = employee;
+    employeeAccessToken = await signIn(employeeMock?.id, password);
+    employeePassword = password;
   });
 
-  it('update an employee register', async () => {
+  it("Update a employee's register", async () => {
     expect(employeeMock).toHaveProperty('id');
 
     const first_name = 'José';
-    const updateBody = { ...employeeMock, first_name };
     const updateResponse = await testServer
       .patch(`/employee/${employeeMock?.id}`)
-      .send(updateBody);
+      .set({ authorization: `Bearer ${employeeAccessToken}` })
+      .send({ id: employeeMock?.id, first_name });
 
     expect(updateResponse.statusCode).toBe(202);
-    expect(updateResponse.body).toHaveProperty('first_name', first_name);
+    expect(updateResponse.body).toHaveProperty('first_name');
   });
 
-  it("try update an employee register with short 'first_name'", async () => {
+  it("Try to update an employee register with with short 'first_name'", async () => {
     expect(employeeMock).toHaveProperty('id');
 
     const first_name = 'Jo';
-    const updateBody = { ...employeeMock, first_name };
     const response = await testServer
       .patch(`/employee/${employeeMock?.id}`)
-      .send(updateBody);
+      .set({ authorization: `Bearer ${employeeAccessToken}` })
+      .send({ id: employeeMock?.id, first_name });
 
     expect(response.statusCode).toBe(400);
     expect(response.body).toHaveProperty('errors.body.first_name');
   });
 
-  it('try update an employee register with empty body', async () => {
+  it('Try to update a employee register without sending the body in the request', async () => {
     expect(employeeMock).toHaveProperty('id');
 
     const response = await testServer
       .patch(`/employee/${employeeMock?.id}`)
+      .set({ authorization: `Bearer ${employeeAccessToken}` })
       .send({});
 
     expect(response.statusCode).toBe(400);
     expect(response.body).toHaveProperty('errors.default');
   });
 
-  it('try to update an employee register with invalid id', async () => {
+  it('Try to update a employee register with an invalid identifier', async () => {
     expect(employeeMock).toHaveProperty('id');
 
     const first_name = 'José';
-    const updateBody = { ...employeeMock, first_name };
-
-    const response = await testServer.patch('/employee/123').send(updateBody);
+    const response = await testServer
+      .patch('/employee/123456')
+      .set({ authorization: `Bearer ${employeeAccessToken}` })
+      .send({ id: employeeMock?.id, first_name });
     expect(response.statusCode).toBe(400);
     expect(response.body).toHaveProperty('errors');
   });

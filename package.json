@@ -4,7 +4,7 @@
   "description": "",
   "main": "Server.ts",
   "scripts": {
-    "dev": "ts-node-dev --env-file=.env ./src/Server.ts",
+    "dev": "ts-node-dev ./src/Server.ts",
     "start": "node ./build/index.js",
     "test": "jest",
     "build": "tsc --build",
@@ -19,9 +19,11 @@
   "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.2.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/express": "^4.17.21",
     "@types/http-status-codes": "^1.2.0",
     "@types/jest": "^29.5.12",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.12",
     "@types/supertest": "^6.0.2",
     "eslint": "^8.57.0",
@@ -36,8 +38,11 @@
     "typescript-eslint": "^7.9.0"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "http-status-codes": "^2.3.0",
+    "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
     "yup": "^1.4.0"
   }

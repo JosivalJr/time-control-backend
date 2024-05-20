@@ -3,7 +3,7 @@ import { Knex } from '../../knex';
 import { ITimeControl } from '../../models';
 
 export const create = async (
-  timecontrol: ITimeControl,
+  timecontrol: Omit<ITimeControl, 'created_at' | 'updated_at'>,
 ): Promise<ITimeControl | Error> => {
   try {
     const [{ count }] = await Knex(ETableNames.employee)
@@ -14,8 +14,13 @@ export const create = async (
       return Error(
         `Error to register an new time control on database. Employee '${timecontrol.employee_id}'cannot be found in database`,
       );
+
     const [result] = await Knex(ETableNames.timeControl)
-      .insert(timecontrol)
+      .insert({
+        ...timecontrol,
+        created_at: new Date(),
+        updated_at: new Date(),
+      })
       .returning('*');
 
     return result;

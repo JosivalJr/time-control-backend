@@ -5,6 +5,7 @@ export async function up(knex: Knex) {
   return knex.schema
     .createTable(ETableNames.timeControl, (table) => {
       table.uuid('id').primary().index().notNullable();
+
       table
         .uuid('employee_id')
         .index()
@@ -13,11 +14,14 @@ export async function up(knex: Knex) {
         .inTable(ETableNames.employee)
         .onUpdate('CASCADE')
         .onDelete('CASCADE');
+
       table
-        .string('control_type', 30)
-        .checkLength('<=', 30)
+        .string('control_type')
         .index()
-        .notNullable();
+        .notNullable()
+        .checkLength('<=', 6)
+        .checkLength('>=', 2);
+
       table.date('control_time').index().notNullable();
       table.date('created_at').index().notNullable().defaultTo(new Date());
       table.date('updated_at').index().notNullable().defaultTo(new Date());
