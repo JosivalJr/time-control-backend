@@ -1,3 +1,2 @@
-import { ValidatorMiddleware } from './ValidatorMiddleware';
-
-export { ValidatorMiddleware };
+export * from './ValidatorMiddleware';
+export * from './EnsureAuthenticated';
